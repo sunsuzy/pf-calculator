@@ -35,7 +35,7 @@ def main():
     st.title("PF Pricing Calculator")
 
     product_price_feed_df = pd.read_csv("C:/Users/Sundeep.CSE/Environments/Test/my_env/product price feed.csv", delimiter=';', dtype={'priceBar': 'str', 'nettPrice': 'object'}, low_memory=False)
-    print_price_feed_df = pd.read_csv("C:/Users/Sundeep.CSE/Environments/Test/my_env/Print price feed.csv", delimiter=';', low_memory=False)
+    print_price_feed_df = pd.read_csv("https://raw.githubusercontent.com/sunsuzy/pf-calculator/master/Print%20price%20feed.csv?token=GHSAT0AAAAAACFI563F2ZMVPVIYWMGQRTJUZFXW3LA", delimiter=';', low_memory=False)
 
     product_price_feed_df['nettPrice'] = product_price_feed_df['nettPrice'].apply(convert_nett_price)
 
