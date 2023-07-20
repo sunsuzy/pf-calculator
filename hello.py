@@ -94,7 +94,7 @@ def main():
         total_print_cost = calculate_total_print_cost(selected_print, quantity, number_of_colors)
 
         total_cost_excl_shipping = total_product_cost + total_print_cost
-        shipping_cost = 18 if total_cost_excl_shipping < 620 else 0
+        shipping_cost = 18 if total_product_cost < 620 else 0
         total_cost_incl_shipping = total_cost_excl_shipping + shipping_cost
 
         cost_price = total_cost_excl_shipping / quantity
