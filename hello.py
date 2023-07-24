@@ -75,12 +75,19 @@ def main():
         available_colors = [str(color) for color in available_colors]
         print_colors = st.selectbox('Enter the number of print colors', available_colors)
 
-        quantity = st.number_input('Enter quantity', min_value=1)
+        # Prefill the quantity with the value in the field minDecoQty
+        min_deco_qty = int(selected_product['minDecoQty'].values[0])
+        quantity = st.number_input('Enter quantity', value=min_deco_qty)
 
         selected_product['priceBar'] = selected_product['priceBar'].astype(int)
 
         applicable_price_bar = selected_product[selected_product['priceBar'] <= quantity]['priceBar'].max()
-        applicable_nett_price = selected_product.loc[selected_product['priceBar'] == applicable_price_bar, 'nettPrice'].values[0]
+        applicable_nett_price_df = selected_product.loc[selected_product['priceBar'] == applicable_price_bar, 'nettPrice']
+        if not applicable_nett_price_df.empty:
+            applicable_nett_price = applicable_nett_price_df.values[0]
+        else:
+            st.error('No matching product found for the given price bar.')
+            return
 
         total_product_cost = quantity * applicable_nett_price
 
@@ -113,6 +120,9 @@ def main():
 
         st.write('Kostenoverzicht:')
         st.table(cost_breakdown_df)
+
+        kostprijs = total_cost_incl_shipping / quantity
+        st.markdown(f"<p style='color:red'>**Kostprijs: € {kostprijs:.2f}**</p>", unsafe_allow_html=True)
         
         st.markdown(f"**Verkoopprijs: € {sell_price:.2f}**")
     else:
