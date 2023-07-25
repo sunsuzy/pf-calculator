@@ -64,7 +64,8 @@ def main():
         selected_product = product_price_feed_df[product_price_feed_df['itemcode'] == item_code].copy()
 
         available_print_techniques = selected_product['decoCharge'].values[0].split(',')
-        print_technique = st.selectbox('Select a print technique', available_print_techniques)
+        print_technique_dict = {technique: print_price_feed_df[print_price_feed_df['printCode'] == technique]['impMethod'].values[0] for technique in available_print_techniques}
+        print_technique = st.selectbox('Select a print technique', options=list(print_technique_dict.keys()), format_func=lambda x: print_technique_dict[x])
 
         selected_print_technique = print_price_feed_df[print_price_feed_df['printCode'] == print_technique]
 
@@ -75,9 +76,10 @@ def main():
         available_colors = [str(color) for color in available_colors]
         print_colors = st.selectbox('Enter the number of print colors', available_colors)
 
-        # Prefill the quantity with the value in the field minDecoQty
-        min_deco_qty = int(selected_product['minDecoQty'].values[0])
-        quantity = st.number_input('Enter quantity', value=min_deco_qty)
+        # Find the minimum quantity that has a price available
+        min_quantity_with_price = int(selected_product['priceBar'].min())
+
+        quantity = st.number_input('Enter quantity', min_value=min_quantity_with_price)
 
         selected_product['priceBar'] = selected_product['priceBar'].astype(int)
 
@@ -104,11 +106,11 @@ def main():
         shipping_cost = 18 if total_product_cost < 620 else 0
         total_cost_incl_shipping = total_cost_excl_shipping + shipping_cost
 
-        cost_price = total_cost_excl_shipping / quantity
+        kostprijs = total_cost_incl_shipping / quantity
 
-        margin = st.slider('Enter margin (0-100)', min_value=0, max_value=100, value=50)
+        margin = st.slider('Enter margin (0-100)', min_value=0, max_value=100, value=38)
 
-        sell_price = cost_price / (1 - (margin / 100))
+        sell_price = kostprijs / (1 - (margin / 100))
 
         cost_breakdown_data = {
             'Cost Component': ['Productkosten', 'Decoratiekosten (inclusief setup)', 'Totaal excl. verzending', 'Verzendkosten', 'Totaal'],
@@ -121,7 +123,6 @@ def main():
         st.write('Kostenoverzicht:')
         st.table(cost_breakdown_df)
 
-        kostprijs = total_cost_incl_shipping / quantity
         st.markdown(f"<p style='color:red'>**Kostprijs: € {kostprijs:.2f}**</p>", unsafe_allow_html=True)
         
         st.markdown(f"**Verkoopprijs: € {sell_price:.2f}**")
