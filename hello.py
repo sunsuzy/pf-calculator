@@ -39,21 +39,19 @@ def main():
     print_price_feed_df = pd.read_csv("https://raw.githubusercontent.com/sunsuzy/pf-calculator/master/Print%20price%20feed.csv", delimiter=';', low_memory=False)
 
     product_price_feed_df['nettPrice'] = product_price_feed_df['nettPrice'].apply(convert_nett_price)
+    product_price_feed_df['priceBar'] = product_price_feed_df['priceBar'].apply(pd.to_numeric, errors='coerce')
 
     descriptions = product_price_feed_df['description'].unique()
     query = st.text_input('Search for a product or enter an item code')
-    if query.isdigit():  # If the query is a number, treat it as an item code
-        matched_items = product_price_feed_df[product_price_feed_df['itemcode'].astype(str) == str(query)]
+    if query:  # If the query is not empty
+        matched_items = product_price_feed_df[product_price_feed_df['itemcode'].astype(str).str.lower() == str(query).lower()]
         if not matched_items.empty:
             descriptions = [matched_items['description'].values[0]]
-        else:
-            descriptions = []
-    else:  # Otherwise, treat it as a product description
-        if query:  # Only do the fuzzy match if the search string is not empty
+        else:  # Otherwise, treat it as a product description
             closest_matches = process.extract(query, descriptions, limit=10)
             descriptions = [match[0] for match in closest_matches]
-        else:
-            descriptions = []
+    else:
+        descriptions = []
     description = st.selectbox('Select a product', descriptions)
     
     matched_products = product_price_feed_df[product_price_feed_df['description'] == description]
@@ -64,22 +62,23 @@ def main():
         selected_product = product_price_feed_df[product_price_feed_df['itemcode'] == item_code].copy()
 
         available_print_techniques = selected_product['decoCharge'].values[0].split(',')
-        print_technique_dict = {technique: print_price_feed_df[print_price_feed_df['printCode'] == technique]['impMethod'].values[0] for technique in available_print_techniques}
-        print_technique = st.selectbox('Select a print technique', options=list(print_technique_dict.keys()), format_func=lambda x: print_technique_dict[x])
+        print_techniques_with_names = []
+        for technique in available_print_techniques:
+            technique_df = print_price_feed_df[print_price_feed_df['printCode'] == technique]
+            if not technique_df.empty:
+                print_techniques_with_names.append((technique, technique_df['impMethod'].values[0]))
+        print_technique = st.selectbox('Select a print technique', options=print_techniques_with_names, format_func=lambda x: f"{x[0]} - {x[1]}")
 
-        selected_print_technique = print_price_feed_df[print_price_feed_df['printCode'] == print_technique]
-
-        print_technique_name = selected_print_technique['impMethod'].values[0]
-        st.write(f"Print Technique: {print_technique_name}")
+        selected_print_technique = print_price_feed_df[print_price_feed_df['printCode'] == print_technique[0]]
 
         available_colors = selected_print_technique['amountColorsId'].unique()
         available_colors = [str(color) for color in available_colors]
         print_colors = st.selectbox('Enter the number of print colors', available_colors)
 
         # Find the minimum quantity that has a price available
-        min_quantity_with_price = int(selected_product['priceBar'].min())
+        min_quantity_from_price_bar = int(selected_product[selected_product['nettPrice'].notnull()]['priceBar'].min())
 
-        quantity = st.number_input('Enter quantity', min_value=min_quantity_with_price)
+        quantity = st.number_input('Enter quantity', min_value=min_quantity_from_price_bar)
 
         selected_product['priceBar'] = selected_product['priceBar'].astype(int)
 
