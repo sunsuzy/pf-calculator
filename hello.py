@@ -9,7 +9,7 @@ def convert_nett_price(value):
     return value
 
 def calculate_total_print_cost(selected_print, quantity, number_of_colors):
-    setup_charge = float(selected_print['SetupCharge'].values[0])
+    setup_charge = convert_nett_price(selected_print['SetupCharge'].values[0])
     deco_price_from_qty = selected_print['decoPriceFromQty'].values
     deco_price = selected_print['decoPrice'].values
 
@@ -21,13 +21,13 @@ def calculate_total_print_cost(selected_print, quantity, number_of_colors):
     for i in range(len(deco_price_from_qty)):
         if quantity >= int(deco_price_from_qty[i]):
             applicable_deco_price_from_qty = int(deco_price_from_qty[i])
-            applicable_deco_price = float(deco_price[i].replace(',', '.'))
+            applicable_deco_price = convert_nett_price(deco_price[i])
         else:
             break
 
     if applicable_deco_price_from_qty is None:
         applicable_deco_price_from_qty = int(deco_price_from_qty[-1])
-        applicable_deco_price = float(deco_price[-1].replace(',', '.'))
+        applicable_deco_price = convert_nett_price(deco_price[-1])
 
     total_print_cost = setup_charge + quantity * applicable_deco_price
     return total_print_cost
