@@ -35,7 +35,7 @@ def calculate_total_print_cost(selected_print, quantity, number_of_colors):
 def main():
     st.title("PF Pricing Calculator")
 
-    product_price_feed_df = pd.read_csv("https://raw.githubusercontent.com/sunsuzy/pf-calculator/master/product%20price%20feed.csv", delimiter='\t', dtype={'priceBar1': 'str', 'nettPriceQ1': 'object'}, low_memory=False)
+    product_price_feed_df = pd.read_csv("https://github.com/sunsuzy/pf-calculator/blob/f8252d195c50d58cd47bb9668eabc9c0d4443d6d/product_price_feed.csv", delimiter='\t', dtype={'priceBar1': 'str', 'nettPriceQ1': 'object'}, low_memory=False)
     print_price_feed_df = pd.read_csv("https://raw.githubusercontent.com/sunsuzy/pf-calculator/master/Print%20price%20feed.csv", delimiter='\t', low_memory=False)
 
     product_price_feed_df['nettPriceQ1'] = product_price_feed_df['nettPriceQ1'].apply(convert_nett_price)
