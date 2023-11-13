@@ -9,11 +9,11 @@ def convert_nett_price(value):
     return value
 
 def calculate_total_print_cost(selected_print, quantity, number_of_colors):
-    setup_charge = convert_nett_price(selected_print['SetupCharge'].values[0])
-    deco_price_from_qty = selected_print['decoPriceFromQty'].values
-    deco_price = selected_print['decoPrice'].values
+    setup_charge = convert_nett_price(selected_print['decoCharge'].values[0])
+    deco_price_from_qty = selected_print['minDecoQTY'].values
+    deco_price = selected_print['nettPriceQ1'].values
 
-    selected_print = selected_print.sort_values(by='decoPriceFromQty')
+    selected_print = selected_print.sort_values(by='minDecoQTY')
 
     applicable_deco_price_from_qty = None
     applicable_deco_price = None
@@ -35,11 +35,10 @@ def calculate_total_print_cost(selected_print, quantity, number_of_colors):
 def main():
     st.title("PF Pricing Calculator")
 
-    # Replace the URL with the correct one for the new file
-    product_price_feed_df = pd.read_csv("https://github.com/sunsuzy/pf-calculator/blob/cba9eb342ecc1b7aa1d3c29b23f85437a4071734/product_price_feed.csv", delimiter='\t', dtype={'nettPriceQ1': 'object'}, low_memory=False)
+    product_price_feed_df = pd.read_csv("https://raw.githubusercontent.com/sunsuzy/pf-calculator/master/product%20price%20feed.csv", delimiter=';', dtype={'priceBar': 'str', 'nettPrice': 'object'}, low_memory=False)
     print_price_feed_df = pd.read_csv("https://raw.githubusercontent.com/sunsuzy/pf-calculator/master/Print%20price%20feed.csv", delimiter=';', low_memory=False)
 
-    product_price_feed_df['nettPrice'] = product_price_feed_df['nettPriceQ1'].apply(convert_nett_price)
+    product_price_feed_df['nettPrice'] = product_price_feed_df['nettPrice'].apply(convert_nett_price)
     product_price_feed_df['priceBar'] = product_price_feed_df['priceBar'].apply(pd.to_numeric, errors='coerce')
 
     descriptions = product_price_feed_df['description'].unique()
@@ -77,14 +76,14 @@ def main():
         print_colors = st.selectbox('Enter the number of print colors', available_colors)
 
         # Find the minimum quantity that has a price available
-        min_quantity_from_price_bar = int(selected_product[selected_product['nettPriceQ1'].notnull()]['priceBar'].min())
+        min_quantity_from_price_bar = int(selected_product[selected_product['nettPrice'].notnull()]['priceBar'].min())
 
         quantity = st.number_input('Enter quantity', min_value=min_quantity_from_price_bar)
 
         selected_product['priceBar'] = selected_product['priceBar'].astype(int)
 
         applicable_price_bar = selected_product[selected_product['priceBar'] <= quantity]['priceBar'].max()
-        applicable_nett_price_df = selected_product.loc[selected_product['priceBar'] == applicable_price_bar, 'nettPriceQ1']
+        applicable_nett_price_df = selected_product.loc[selected_product['priceBar'] == applicable_price_bar, 'nettPrice']
         if not applicable_nett_price_df.empty:
             applicable_nett_price = applicable_nett_price_df.values[0]
         else:
