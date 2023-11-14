@@ -12,26 +12,15 @@ def convert_nett_price(value):
 # Function to calculate total print cost
 def calculate_total_print_cost(selected_print, quantity, number_of_colors):
     setup_charge = convert_nett_price(selected_print['SetupCharge'].values[0])
-    price_bars = [selected_print[f'priceBar{i}'].values[0] for i in range(1, 5)]
-    net_prices = [convert_nett_price(selected_print[f'nettPriceQ{i}'].values[0]) for i in range(1, 5)]
-
-    # Sorting the price bars and their respective nett prices in ascending order based on price bars
-    sorted_price_bars_with_prices = sorted(zip(price_bars, net_prices), key=lambda x: x[0])
-
-    applicable_price_bar = None
-    applicable_nett_price = None
-
-    # Find the highest price bar that is less than or equal to the quantity
-    for price_bar, net_price in sorted_price_bars_with_prices:
-        if quantity >= price_bar:
-            applicable_price_bar = price_bar
-            applicable_nett_price = net_price
-        else:
+    
+    # This will find the appropriate price bar and corresponding nett price
+    for i in range(4, 0, -1):  # Check priceBar4 to priceBar1
+        if quantity >= selected_print[f'priceBar{i}']:
+            applicable_nett_price = convert_nett_price(selected_print[f'nettPriceQ{i}'])
             break
-
-    if applicable_price_bar is None:
-        applicable_price_bar = sorted_price_bars_with_prices[-1][0]
-        applicable_nett_price = sorted_price_bars_with_prices[-1][1]
+    else:
+        # If quantity is lower than the smallest priceBar, use priceBar1
+        applicable_nett_price = convert_nett_price(selected_print['nettPriceQ1'])
 
     total_print_cost = setup_charge + (quantity * applicable_nett_price)
     return total_print_cost
@@ -42,28 +31,29 @@ def main():
 
     # Update the CSV paths as needed
     product_price_feed_df = pd.read_csv(
-    "product_price_feed.csv",  # Replace with the actual path to your CSV file
-    delimiter=',',
-    converters={
-        'nettPriceQ1': convert_nett_price,
-        'nettPriceQ2': convert_nett_price,
-        'nettPriceQ3': convert_nett_price,
-        'nettPriceQ4': convert_nett_price
+        "https://raw.githubusercontent.com/sunsuzy/pf-calculator/master/product%20price%20feed.csv",
+        delimiter=',',
+        converters={
+            'nettPriceQ1': convert_nett_price,
+            'nettPriceQ2': convert_nett_price,
+            'nettPriceQ3': convert_nett_price,
+            'nettPriceQ4': convert_nett_price
         },
         dtype={
             'priceBar1': int,
             'priceBar2': int,
             'priceBar3': int,
-            'priceBar4': int,
+            'priceBar4': int
         }
     )
 
+    # Ensure you read the print price feed correctly as well
     print_price_feed_df = pd.read_csv(
         "https://raw.githubusercontent.com/sunsuzy/pf-calculator/master/Print%20price%20feed.csv",
         delimiter=';',
         low_memory=False
     )
-    
+
     # Convert the price bars and nett prices to numeric values after they have been read
     for i in range(1, 5):
         product_price_feed_df[f'priceBar{i}'] = product_price_feed_df[f'priceBar{i}'].apply(pd.to_numeric, errors='coerce')
