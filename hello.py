@@ -42,16 +42,22 @@ def main():
 
     # Update the CSV paths as needed
     product_price_feed_df = pd.read_csv(
-        "https://github.com/sunsuzy/pf-calculator/blob/2e469fcaa65120800ced82776e818a5db6f038e1/product_price_feed.csv",
-        delimiter=';',
-        dtype={
-            'priceBar1': 'str', 'nettPriceQ1': 'object',
-            'priceBar2': 'str', 'nettPriceQ2': 'object',
-            'priceBar3': 'str', 'nettPriceQ3': 'object',
-            'priceBar4': 'str', 'nettPriceQ4': 'object'
+    "product_price_feed.csv",  # Replace with the actual path to your CSV file
+    delimiter=',',
+    converters={
+        'nettPriceQ1': convert_nett_price,
+        'nettPriceQ2': convert_nett_price,
+        'nettPriceQ3': convert_nett_price,
+        'nettPriceQ4': convert_nett_price
         },
-        low_memory=False
+        dtype={
+            'priceBar1': int,
+            'priceBar2': int,
+            'priceBar3': int,
+            'priceBar4': int,
+        }
     )
+
     print_price_feed_df = pd.read_csv(
         "https://raw.githubusercontent.com/sunsuzy/pf-calculator/master/Print%20price%20feed.csv",
         delimiter=';',
