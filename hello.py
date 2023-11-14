@@ -42,7 +42,7 @@ def main():
 
     # Update the CSV paths as needed
     product_price_feed_df = pd.read_csv(
-        "https://raw.githubusercontent.com/sunsuzy/pf-calculator/master/product%20price%20feed.csv",
+        "https://github.com/sunsuzy/pf-calculator/blob/2e469fcaa65120800ced82776e818a5db6f038e1/product_price_feed.csv",
         delimiter=';',
         dtype={
             'priceBar1': 'str', 'nettPriceQ1': 'object',
