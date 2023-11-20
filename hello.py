@@ -9,7 +9,7 @@ def convert_nett_price(value):
     return value
 
 def calculate_total_print_cost(selected_print, quantity, number_of_colors):
-    setup_charge = convert_nett_price(selected_print['SetupCharge'].values[0])
+    setup_charge = float(selected_print['SetupCharge'].values[0])
     deco_price_from_qty = selected_print['decoPriceFromQty'].values
     deco_price = selected_print['decoPrice'].values
 
@@ -21,13 +21,13 @@ def calculate_total_print_cost(selected_print, quantity, number_of_colors):
     for i in range(len(deco_price_from_qty)):
         if quantity >= int(deco_price_from_qty[i]):
             applicable_deco_price_from_qty = int(deco_price_from_qty[i])
-            applicable_deco_price = convert_nett_price(deco_price[i])
+            applicable_deco_price = float(deco_price[i].replace(',', '.'))
         else:
             break
 
     if applicable_deco_price_from_qty is None:
         applicable_deco_price_from_qty = int(deco_price_from_qty[-1])
-        applicable_deco_price = convert_nett_price(deco_price[-1])
+        applicable_deco_price = float(deco_price[-1].replace(',', '.'))
 
     total_print_cost = setup_charge + quantity * applicable_deco_price
     return total_print_cost
@@ -35,8 +35,8 @@ def calculate_total_print_cost(selected_print, quantity, number_of_colors):
 def main():
     st.title("PF Pricing Calculator")
 
-    product_price_feed_df = pd.read_csv("https://raw.githubusercontent.com/sunsuzy/pf-calculator/master/product_price_feed.csv", delimiter=';', dtype={'priceBar': 'str', 'nettPrice': 'object'}, low_memory=False)
-    print_price_feed_df = pd.read_csv("https://github.com/sunsuzy/pf-calculator/blob/master/print_price_feed.csv", delimiter=';', low_memory=False)
+    product_price_feed_df = pd.read_csv("https://raw.githubusercontent.com/sunsuzy/pf-calculator/master/product%20price%20feed.csv", delimiter=';', dtype={'priceBar': 'str', 'nettPrice': 'object'}, low_memory=False)
+    print_price_feed_df = pd.read_csv("https://raw.githubusercontent.com/sunsuzy/pf-calculator/master/Print%20price%20feed.csv", delimiter=';', low_memory=False)
 
     product_price_feed_df['nettPrice'] = product_price_feed_df['nettPrice'].apply(convert_nett_price)
     product_price_feed_df['priceBar'] = product_price_feed_df['priceBar'].apply(pd.to_numeric, errors='coerce')
