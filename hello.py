@@ -3,7 +3,9 @@ import pandas as pd
 from fuzzywuzzy import process
 
 def convert_nett_price(value):
-    if isinstance(value, str):
+    if pd.isnull(value):
+        return None  # or a default value like 0
+    elif isinstance(value, str):
         value = value.replace(',', '.')
         return float(value)
     return value
