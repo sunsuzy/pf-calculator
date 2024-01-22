@@ -53,13 +53,17 @@ def main():
     else:
         descriptions = []
     description = st.selectbox('Select a product', descriptions)
-    
+
     matched_products = product_price_feed_df[product_price_feed_df['description'] == description]
     if not matched_products.empty:
         item_code = matched_products['itemcode'].values[0]
         st.write(f"Item Code: {item_code}")
 
         selected_product = product_price_feed_df[product_price_feed_df['itemcode'] == item_code].copy()
+
+        # Handle NaN values and ensure all values are integer-compatible
+        selected_product['priceBar'] = selected_product['priceBar'].fillna(0)
+        selected_product['priceBar'] = pd.to_numeric(selected_product['priceBar'], errors='coerce').astype(int)
 
         available_print_techniques = selected_product['decoCharge'].values[0].split(',')
         print_techniques_with_names = []
@@ -79,8 +83,6 @@ def main():
         min_quantity_from_price_bar = int(selected_product[selected_product['nettPrice'].notnull()]['priceBar'].min())
 
         quantity = st.number_input('Enter quantity', min_value=min_quantity_from_price_bar)
-
-        selected_product['priceBar'] = selected_product['priceBar'].astype(int)
 
         applicable_price_bar = selected_product[selected_product['priceBar'] <= quantity]['priceBar'].max()
         applicable_nett_price_df = selected_product.loc[selected_product['priceBar'] == applicable_price_bar, 'nettPrice']
