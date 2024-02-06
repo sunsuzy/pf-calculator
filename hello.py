@@ -92,12 +92,11 @@ def main():
             selected_print_technique = print_price_feed_df[print_price_feed_df['printCode'] == print_technique[0]]
             selected_print_technique = selected_print_technique.sort_values(by='decoPriceFromQty')
             
-            # Convert available_colors to integers, sort them, and then convert back to strings for display
+            available_colors = selected_print_technique['amountColorsId'].unique()
+            # Sort the number of print colors
             available_colors = sorted([int(color) for color in available_colors if color.isdigit()])
             available_colors = [str(color) for color in available_colors]  # Convert back to strings
-
             print_colors = st.selectbox('Enter the number of print colors', available_colors)
-
 
             min_quantity_from_price_bar = int(selected_product[selected_product['nettPrice'].notnull()]['priceBar'].min())
             quantity = st.number_input('Enter quantity', min_value=min_quantity_from_price_bar)
