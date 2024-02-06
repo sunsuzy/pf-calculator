@@ -24,8 +24,8 @@ def calculate_total_print_cost(selected_print, quantity, num_colors=None, logo_s
 
 def load_data():
     try:
-        product_price_feed_df = pd.read_csv("product_price_feed.csv", delimiter=',', dtype={'priceBar': 'str', 'nettPrice': 'object'}, low_memory=False)
-        print_price_feed_df = pd.read_csv("Print_price_feed.csv", delimiter=',', low_memory=False)
+        product_price_feed_df = pd.read_csv("https://raw.githubusercontent.com/sunsuzy/pf-calculator/master/product_price_feed.csv", delimiter=',', dtype={'priceBar': 'str', 'nettPrice': 'object'}, low_memory=False)
+        print_price_feed_df = pd.read_csv("https://raw.githubusercontent.com/sunsuzy/pf-calculator/master/Print%20price%20feed.csv", delimiter=',', low_memory=False)
         return product_price_feed_df, print_price_feed_df
     except Exception as e:
         st.error(f"Failed to load data: {e}")
