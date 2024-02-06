@@ -42,15 +42,13 @@ def display_available_print_techniques(selected_product, print_price_feed_df):
     for technique in available_print_techniques:
         technique_df = print_price_feed_df[print_price_feed_df['printCode'] == technique]
         if not technique_df.empty:
-            price_dependence = technique_df['priceDependence'].values[0]
-            print_techniques_with_names_and_dependence.append((technique, technique_df['impMethod'].values[0], price_dependence))
+            price_dependence = technique_df.iloc[0]['priceDependence']
+            print_techniques_with_names_and_dependence.append((technique, technique_df.iloc[0]['impMethod'], price_dependence))
     return print_techniques_with_names_and_dependence
 
 def get_size_options(selected_print_technique):
     size_options = selected_print_technique['logoSizeCm2'].unique()
     return sorted([str(size) for size in size_options])
-
-# Main function
 def main():
     st.title("PF Pricing Calculator")
 
@@ -66,21 +64,19 @@ def main():
         matched_items = product_price_feed_df[(product_price_feed_df['itemcode'].str.lower() == query.lower()) | (product_price_feed_df['description'].str.lower().str.contains(query.lower()))]
         if not matched_items.empty:
             description = st.selectbox('Select a product', matched_items['description'].unique())
-            selected_product = matched_items[matched_items['description'] == description].iloc[0]
+            selected_product = matched_products[matched_products['description'] == description].iloc[0]
 
-            # Ensure selected_product is accessed correctly
             st.write(f"Item Code: {selected_product['itemcode']}")
 
             print_techniques_with_names_and_dependence = display_available_print_techniques(selected_product, print_price_feed_df)
-            if print_techniques_with_names_and_dependence:
-                selected_technique_info = st.selectbox(
-                    'Select a print technique',
-                    options=print_techniques_with_names_and_dependence,
-                    format_func=lambda x: f"{x[1]} ({x[0]}) - {x[2]}"
-                )
-                selected_technique, _, price_dependence = selected_technique_info
+            selected_technique_info = st.selectbox(
+                'Select a print technique',
+                options=print_techniques_with_names_and_dependence,
+                format_func=lambda x: f"{x[1]} ({x[0]}) - {x[2]}"
+            )
+            selected_technique, price_dependence = selected_technique_info[0], selected_technique_info[2]
 
-                selected_print_technique = print_price_feed_df[print_price_feed_df['printCode'] == selected_technique]
+            selected_print_technique = print_price_feed_df[print_price_feed_df['printCode'] == selected_technique]
 
             num_colors, logo_size = None, None
             if price_dependence == 'Colors':
@@ -88,17 +84,14 @@ def main():
                 num_colors = st.selectbox('Select the number of print colors', options=available_colors)
             elif price_dependence == 'Size':
                 size_options = get_size_options(selected_print_technique)
-                logo_size = st.selectbox('Select the print size (cm²)', options=size_options)
-                logo_size = float(logo_size)  # Convert selected size back to float for comparison
+                logo_size = st.selectbox('Select the print size (cm²)', options=size_options, format_func=lambda x: f"{x} cm²")
 
-            min_quantity_from_price_bar = int(selected_product[selected_product['nettPrice'].notnull()]['priceBar'].min())
+            min_quantity_from_price_bar = int(selected_product['priceBar'].min())
             quantity = st.number_input('Enter quantity', min_value=min_quantity_from_price_bar)
 
             total_print_cost = calculate_total_print_cost(selected_print_technique, quantity, num_colors, logo_size)
 
-            # Display total print cost
             st.write(f"Total print cost: €{total_print_cost:.2f}")
-
                         # Assume product_cost, shipping_cost, and additional_fees are calculated or retrieved
             product_cost = quantity * applicable_nett_price  # Example; already calculated
             shipping_cost = 0  # Placeholder for shipping cost logic
@@ -115,6 +108,7 @@ def main():
             st.write(f"Shipping cost: €{shipping_cost:.2f}")
             st.write(f"Additional fees: €{additional_fees:.2f}")
             st.write(f"**Total cost: €{total_cost:.2f}**")
+
 
 if __name__ == "__main__":
     main()
