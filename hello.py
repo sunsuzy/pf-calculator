@@ -9,13 +9,12 @@ def convert_nett_price(value):
     return value
 
 def calculate_total_print_cost(selected_print, quantity, num_colors):
-    # This function might need adjustment based on available data
     try:
         setup_charge = convert_nett_price(selected_print['SetupCharge'].values[0])
         deco_price = convert_nett_price(selected_print[selected_print['amountColorsId'].astype(str) == str(num_colors)]['decoPrice'].values[0])
         total_print_cost = setup_charge + (deco_price * quantity)
         return total_print_cost
-    except IndexError:  # Handling cases where a specific color count is not available
+    except IndexError:  # Handling cases where specific color count is not available
         return 0
 
 def load_data():
@@ -32,73 +31,58 @@ def preprocess_data(product_price_feed_df):
         product_price_feed_df['nettPrice'] = product_price_feed_df['nettPrice'].apply(convert_nett_price)
         product_price_feed_df['priceBar'] = product_price_feed_df['priceBar'].apply(pd.to_numeric, errors='coerce')
     return product_price_feed_df
-
-def calculate_and_display_all_costs(selected_product, quantity, decorations_info):
-    # Calculate product cost
-    applicable_price_bar = selected_product[selected_product['priceBar'] <= quantity]['priceBar'].max()
-    applicable_nett_price_df = selected_product.loc[selected_product['priceBar'] == applicable_price_bar, 'nettPrice']
-    if not applicable_nett_price_df.empty:
-        applicable_nett_price = applicable_nett_price_df.values[0]
-        total_product_cost = quantity * applicable_nett_price
-    else:
-        total_product_cost = 0  # Handle case with no applicable price
-    
-    # Calculate total decoration cost
-    total_decoration_cost = sum([info['cost'] for info in decorations_info])
-    
-    # Assuming shipping or other additional costs logic here
-    shipping_cost = 13 if (total_product_cost + total_decoration_cost) < 620 else 0
-    
-    # Total cost
-    total_cost_incl_shipping = total_product_cost + total_decoration_cost + shipping_cost
-    
-    # Displaying the costs
-    st.write(f"Total product cost: €{total_product_cost:.2f}")
-    st.write(f"Total decoration cost: €{total_decoration_cost:.2f}")
-    st.write(f"Shipping cost: €{shipping_cost:.2f}")
-    st.write(f"Total cost including shipping: €{total_cost_incl_shipping:.2f}")
-
-def get_technique_color_options(print_price_feed_df, technique, selected_product):
-    """
-    Filters available color options based on the selected print technique and product.
-    """
-    technique_df = print_price_feed_df[print_price_feed_df['printCode'] == technique]
-    # Filter based on what's applicable to the selected product, if necessary
-    color_options = technique_df['amountColorsId'].unique()
-    return sorted(set(color_options))  # Return sorted unique color options
-
 def main():
     st.title("PF Pricing Calculator")
-    product_price_feed_df, print_price_feed_df = load_data()
 
+    product_price_feed_df, print_price_feed_df = load_data()
     if product_price_feed_df is None or print_price_feed_df is None:
-        return
+        return  # Exit if data failed to load
 
     product_price_feed_df = preprocess_data(product_price_feed_df)
+
+    # Product search and selection
     descriptions = product_price_feed_df['description'].unique()
     query = st.text_input('Search for a product or enter an item code')
+    selected_product = None
 
     if query:
-        # Product search and selection logic...
-        # Assuming product selection logic is implemented here...
-        selected_techniques = st.multiselect('Select print techniques', options=available_print_techniques, format_func=lambda x: f"{x[0]} - {x[1]}")
+        matched_items = product_price_feed_df[product_price_feed_df['itemcode'].astype(str).str.contains(query, case=False) | product_price_feed_df['description'].str.contains(query, case=False)]
+        if not matched_items.empty:
+            description = st.selectbox('Select a product', matched_items['description'].unique())
+            selected_product = matched_items[matched_items['description'] == description].iloc[0]
 
-    decorations_info = []
-    for technique, name in selected_techniques:
-        color_options = get_technique_color_options(print_price_feed_df, technique, selected_product)
-        if not color_options:
-            st.write(f"No color options available for {name}.")
-            continue
-        selected_color = st.selectbox(f'Number of colors for {name}', options=color_options, key=f"colors_{technique}")
-        num_colors = int(selected_color)  # Assuming color options are stored as integers or can be converted
-        cost = calculate_total_print_cost(print_price_feed_df[print_price_feed_df['printCode'] == technique], quantity, num_colors)
-        decorations_info.append({'technique': technique, 'num_colors': num_colors, 'cost': cost})
+    if selected_product is not None:
+        st.write(f"Selected Product: {selected_product['description']}")
 
-    # Assuming quantity input and other logic remains the same...
-    quantity = st.number_input('Enter quantity', min_value=1, key="quantity")
+        # Assuming a function to fetch available print techniques for the selected product
+        available_print_techniques = [(row['printCode'], row['impMethod']) for index, row in print_price_feed_df.iterrows()]
 
-    # Call the function to calculate and display all costs
-    calculate_and_display_all_costs(selected_product, quantity, decorations_info)
+        if available_print_techniques:
+            selected_techniques = st.multiselect('Select print techniques', options=available_print_techniques, format_func=lambda x: f"{x[0]} - {x[1]}")
+
+            decorations_info = []
+            for technique, _ in selected_techniques:
+                st.write(f"Configuring {technique}:")
+                # Example logic to get color options for the selected technique
+                # This needs adjustment to match your actual data and logic
+                color_options = ['1', '2', '3', '4']  # Placeholder for actual options
+                selected_color = st.selectbox(f'Number of colors for {technique}', options=color_options, key=f"colors_{technique}")
+                num_colors = int(selected_color)
+                # Assuming selected_print_technique is correctly fetched based on 'technique'
+                selected_print_technique = print_price_feed_df[print_price_feed_df['printCode'] == technique].iloc[0]
+                cost = calculate_total_print_cost(selected_print_technique, 100, num_colors)  # Placeholder quantity
+                decorations_info.append({'technique': technique, 'num_colors': num_colors, 'cost': cost})
+
+            # Display decoration info (This is a simplified representation)
+            for info in decorations_info:
+                st.write(f"Technique: {info['technique']}, Colors: {info['num_colors']}, Cost: €{info['cost']}")
+
+            # Further logic for displaying product cost, total decoration cost, etc.
+            # This part of the code would calculate and display other costs as needed
+        else:
+            st.write("No print techniques available for the selected product.")
+    else:
+        st.write("Please search for and select a product.")
 
 if __name__ == "__main__":
     main()
