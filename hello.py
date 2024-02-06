@@ -36,53 +36,39 @@ def main():
 
     product_price_feed_df, print_price_feed_df = load_data()
     if product_price_feed_df is None or print_price_feed_df is None:
-        return  # Exit if data failed to load
+        return
 
     product_price_feed_df = preprocess_data(product_price_feed_df)
-
-    # Product search and selection
     descriptions = product_price_feed_df['description'].unique()
     query = st.text_input('Search for a product or enter an item code')
-    selected_product = None
 
     if query:
-        matched_items = product_price_feed_df[product_price_feed_df['itemcode'].astype(str).str.contains(query, case=False) | product_price_feed_df['description'].str.contains(query, case=False)]
+        matched_items = product_price_feed_df[product_price_feed_df['itemcode'].str.contains(query, case=False) | product_price_feed_df['description'].str.contains(query, case=False)]
         if not matched_items.empty:
             description = st.selectbox('Select a product', matched_items['description'].unique())
             selected_product = matched_items[matched_items['description'] == description].iloc[0]
 
-    if selected_product is not None:
-        st.write(f"Selected Product: {selected_product['description']}")
+            # Display selected product information
+            st.write(f"Selected Product: {selected_product['description']}")
 
-        # Assuming a function to fetch available print techniques for the selected product
-        available_print_techniques = [(row['printCode'], row['impMethod']) for index, row in print_price_feed_df.iterrows()]
+            # Filter print techniques based on the selected product
+            available_techniques = selected_product['decoCharge'].split(',')
+            filtered_print_techniques = print_price_feed_df[print_price_feed_df['printCode'].isin(available_techniques)]
 
-        if available_print_techniques:
+            available_print_techniques = [(row['printCode'], row['impMethod']) for index, row in filtered_print_techniques.iterrows()]
             selected_techniques = st.multiselect('Select print techniques', options=available_print_techniques, format_func=lambda x: f"{x[0]} - {x[1]}")
 
-            decorations_info = []
-            for technique, _ in selected_techniques:
-                st.write(f"Configuring {technique}:")
-                # Example logic to get color options for the selected technique
-                # This needs adjustment to match your actual data and logic
-                color_options = ['1', '2', '3', '4']  # Placeholder for actual options
-                selected_color = st.selectbox(f'Number of colors for {technique}', options=color_options, key=f"colors_{technique}")
-                num_colors = int(selected_color)
-                # Assuming selected_print_technique is correctly fetched based on 'technique'
-                selected_print_technique = print_price_feed_df[print_price_feed_df['printCode'] == technique].iloc[0]
-                cost = calculate_total_print_cost(selected_print_technique, 100, num_colors)  # Placeholder quantity
-                decorations_info.append({'technique': technique, 'num_colors': num_colors, 'cost': cost})
+            for technique, name in selected_techniques:
+                # Here you would implement the logic to select the number of colors and calculate cost
+                # similar to the approach suggested, ensuring it matches your specific data and logic
+                pass  # Placeholder for technique-specific configuration and cost calculation
 
-            # Display decoration info (This is a simplified representation)
-            for info in decorations_info:
-                st.write(f"Technique: {info['technique']}, Colors: {info['num_colors']}, Cost: €{info['cost']}")
-
-            # Further logic for displaying product cost, total decoration cost, etc.
-            # This part of the code would calculate and display other costs as needed
+            # Further logic for calculating and displaying costs
+            # This includes product cost, total decoration cost, and any other relevant costs
         else:
-            st.write("No print techniques available for the selected product.")
+            st.write("No matching products found.")
     else:
-        st.write("Please search for and select a product.")
+        st.write("Please enter a search query.")
 
 if __name__ == "__main__":
     main()
