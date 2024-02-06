@@ -111,7 +111,22 @@ def main():
             # Display total print cost
             st.write(f"Total print cost: €{total_print_cost:.2f}")
 
-            # Further logic for calculating and displaying other costs can follow here
+                        # Assume product_cost, shipping_cost, and additional_fees are calculated or retrieved
+            product_cost = quantity * applicable_nett_price  # Example; already calculated
+            shipping_cost = 0  # Placeholder for shipping cost logic
+            if total_print_cost + product_cost < 620:
+                shipping_cost = 13  # Example shipping logic based on order value
+
+            additional_fees = 0  # Placeholder for any additional fees
+
+            total_cost = product_cost + total_print_cost + shipping_cost + additional_fees
+
+            # Displaying cost breakdown
+            st.write(f"Product cost: €{product_cost:.2f}")
+            st.write(f"Print cost: €{total_print_cost:.2f}")
+            st.write(f"Shipping cost: €{shipping_cost:.2f}")
+            st.write(f"Additional fees: €{additional_fees:.2f}")
+            st.write(f"**Total cost: €{total_cost:.2f}**")
 
 if __name__ == "__main__":
     main()
