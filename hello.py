@@ -63,36 +63,24 @@ def main():
     descriptions = product_price_feed_df['description'].unique()
     query = st.text_input('Search for a product or enter an item code')
     if query:
-        matched_items = product_price_feed_df[product_price_feed_df['itemcode'].astype(str).str.lower() == query.lower()]
+        matched_items = product_price_feed_df[(product_price_feed_df['itemcode'].str.lower() == query.lower()) | (product_price_feed_df['description'].str.lower().str.contains(query.lower()))]
         if not matched_items.empty:
-            descriptions = [matched_items['description'].values[0]]
-        else:
-            closest_matches = process.extract(query, descriptions, limit=10)
-            descriptions = [match[0] for match in closest_matches]
-    else:
-        descriptions = []
+            description = st.selectbox('Select a product', matched_items['description'].unique())
+            selected_product = matched_items[matched_items['description'] == description].iloc[0]
 
-    if descriptions:
-        description = st.selectbox('Select a product', descriptions)
-        matched_products = product_price_feed_df[product_price_feed_df['description'] == description]
-        if not matched_products.empty:
-            item_code = matched_products['itemcode'].values[0]
-            st.write(f"Item Code: {item_code}")
-
-            selected_product = product_price_feed_df[product_price_feed_df['itemcode'] == item_code].copy()
-            selected_product['priceBar'] = selected_product['priceBar'].fillna(0)
-            selected_product['priceBar'] = pd.to_numeric(selected_product['priceBar'], errors='coerce').astype(int)
+            # Ensure selected_product is accessed correctly
+            st.write(f"Item Code: {selected_product['itemcode']}")
 
             print_techniques_with_names_and_dependence = display_available_print_techniques(selected_product, print_price_feed_df)
+            if print_techniques_with_names_and_dependence:
+                selected_technique_info = st.selectbox(
+                    'Select a print technique',
+                    options=print_techniques_with_names_and_dependence,
+                    format_func=lambda x: f"{x[1]} ({x[0]}) - {x[2]}"
+                )
+                selected_technique, _, price_dependence = selected_technique_info
 
-            selected_technique_info = st.selectbox(
-                'Select a print technique',
-                options=print_techniques_with_names_and_dependence,
-                format_func=lambda x: f"{x[1]} ({x[0]}) - {x[2]}"
-            )
-            selected_technique, price_dependence = selected_technique_info[0], selected_technique_info[2]
-
-            selected_print_technique = print_price_feed_df[print_price_feed_df['printCode'] == selected_technique]
+                selected_print_technique = print_price_feed_df[print_price_feed_df['printCode'] == selected_technique]
 
             num_colors, logo_size = None, None
             if price_dependence == 'Colors':
