@@ -81,7 +81,6 @@ def main():
     if query:
         # Product search and selection logic...
         # Assuming product selection logic is implemented here...
-
     selected_techniques = st.multiselect('Select print techniques', options=available_print_techniques, format_func=lambda x: f"{x[0]} - {x[1]}")
 
     decorations_info = []
