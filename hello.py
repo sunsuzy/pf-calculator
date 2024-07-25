@@ -3,10 +3,6 @@ import pandas as pd
 import numpy as np
 from fuzzywuzzy import process
 
-# Display versions for debugging
-st.write(f"Pandas version: {pd.__version__}")
-st.write(f"NumPy version: {np.__version__}")
-
 def convert_nett_price(value):
     if isinstance(value, str):
         value = value.replace(',', '.')
