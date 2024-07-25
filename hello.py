@@ -3,6 +3,10 @@ import pandas as pd
 import numpy as np
 from fuzzywuzzy import process
 
+# Display versions for debugging
+st.write(f"Pandas version: {pd.__version__}")
+st.write(f"NumPy version: {np.__version__}")
+
 def convert_nett_price(value):
     if isinstance(value, str):
         value = value.replace(',', '.')
@@ -94,7 +98,6 @@ def main():
             selected_print_technique = selected_print_technique.sort_values(by='decoPriceFromQty')
             
             available_colors = selected_print_technique['amountColorsId'].unique()
-            # Sort the number of print colors
             available_colors = sorted([int(color) for color in available_colors if color.isdigit()])
             available_colors = [str(color) for color in available_colors]  # Convert back to strings
             print_colors = st.selectbox('Enter the number of print colors', available_colors)
