@@ -1,6 +1,10 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 from fuzzywuzzy import process
+
+st.write(f"Pandas version: {pd.__version__}")
+st.write(f"NumPy version: {np.__version__}")
 
 def convert_nett_price(value):
     if isinstance(value, str):
